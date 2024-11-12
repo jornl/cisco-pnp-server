@@ -15,12 +15,16 @@ def check_device_exists(serial_number):
     return False
   return True
 
-def create_device(serial_number, installed_image, model_number):
-  image = installed_image.split('/')[1]
+def create_device(serial_number, installed_image, installed_image_version, model_number):
+  if "/" in installed_image:
+    image = installed_image.split('/')[1]
+  else:
+    image = installed_image.split(':')[1]
+
   device_type = netbox.dcim.device_types.get(part_number=model_number)
   status = 'planned'
 
-  if image != device_type.custom_fields['latest_image']:
+  if installed_image_version != device_type.custom_fields['latest_image_version']:
     status = 'image_needed'
 
   device = netbox.dcim.devices.create(
@@ -31,24 +35,30 @@ def create_device(serial_number, installed_image, model_number):
     serial=serial_number,
     status=status,
     custom_fields={
-      "installed_image": image
+      "installed_image": image,
+      "installed_image_version": installed_image_version
     }
   )
 
   return device
 
-def update_device(serial_number, installed_image):
-  image = installed_image.split('/')[1]
+def update_device(serial_number, installed_image, installed_image_version):
+  if "/" in installed_image:
+    image = installed_image.split('/')[1]
+  else:
+    image = installed_image.split(':')[1]
+
   device = get_device(serial_number)
   device_type = get_device_type(device.device_type.model)
 
-  if image != device_type.custom_fields['latest_image']:
+  if installed_image_version != device_type.custom_fields['latest_image_version']:
     return
 
   return device.update({
     "status": 'planned',
     "custom_fields": {
-      "installed_image": image
+      "installed_image": image,
+      "installed_image_version": installed_image_version
     }
   })
 

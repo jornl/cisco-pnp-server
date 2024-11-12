@@ -124,15 +124,15 @@ def pnp_work_response():
             device_info = data['pnp']['response']['hardwareInfo']
             image_info = data['pnp']['response']['imageInfo']
             if not check_device_exists(device_info['boardId']):
-                create_device(device_info['boardId'], image_info['imageFile'], device_info['platformName'])
+                create_device(device_info['boardId'], image_info['imageFile'], image_info['versionString'], device_info['platformName'])
             else:
-                update_device(device_info['boardId'], image_info['imageFile'])
+                update_device(device_info['boardId'], image_info['imageFile'], image_info['versionString'])
             return Response(pnp_bye(udi, correlator_id), mimetype='application/xml')
         
     if job_type == 'urn:cisco:pnp:image-install':
         if job_status == 1:
             print("Image install job successful")
-            update_status(serial_number, 'imaged_updated')
+            update_status(serial_number, 'image_updated')
             return Response(pnp_device_info(udi, correlator_id), mimetype='application/xml')
 
     if job_type == 'urn:cisco:pnp:config-upgrade':

@@ -6,13 +6,11 @@
 				<source>
 					<location>{{ pnp_server }}/images/{{ image_filename }}</location>
 					{% if image_checksum %}
-					<checksum>
-						{{ image_checksum }}
-					</checksum>
+					<checksum>{{ image_checksum }}</checksum>
 					{% endif %}
 				</source>
 				<destination>
-					<location>flash:/{{ image_filename }}</location>
+					<location>flash:{{ image_filename }}</location>
 				</destination>
 			</copy>
 		</image>
