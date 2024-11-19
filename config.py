@@ -1,7 +1,8 @@
-
+import os
 from dotenv import load_dotenv, dotenv_values
 
-load_dotenv()
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(BASEDIR, '.env'))
 
 def env(key, default=None):
     return dotenv_values().get(key, default)
