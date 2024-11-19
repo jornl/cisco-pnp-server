@@ -70,7 +70,7 @@ def pnp_work_request():
 
     if device.status.value == 'planned':
         print(f"Device {device} is planned")
-        return Response(pnp_backoff(udi, correlator_id), mimetype='application/xml')
+        return Response(pnp_backoff(udi, correlator_id, 5), mimetype='application/xml')
     
     if device.status.value == 'image_needed':
         print(f"Device {device} needs image")
