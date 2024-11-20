@@ -91,7 +91,7 @@ def pnp_work_request():
 
         location = f"{config['pnp']['host']}/config/{device.serial}"
 
-        return Response(render_template('load_config.xml', {
+        return Response(render_template('load_config.xml', **{
             "udi": udi,
             "correlator_id": correlator_id,
             "location": location
@@ -137,9 +137,9 @@ def pnp_work_response():
 
     if job_type == 'urn:cisco:pnp:config-upgrade':
         if job_status == 1:
-            device_info = data['pnp']['response']['hardwareInfo']
-            update_status(device_info['boardId'], 'provisioned')
             print("Configuration job successful")
+            update_status(serial_number, 'provisioned')
+            return Response(pnp_device_info(udi, correlator_id), mimetype='application/xml')
         print(data)
 
     return Response(pnp_bye(udi, correlator_id), mimetype='application/xml')

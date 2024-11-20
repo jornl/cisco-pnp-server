@@ -55,7 +55,6 @@ def update_device(serial_number, installed_image, installed_image_version):
     return
 
   return device.update({
-    "status": 'planned',
     "custom_fields": {
       "installed_image": image,
       "installed_image_version": installed_image_version
