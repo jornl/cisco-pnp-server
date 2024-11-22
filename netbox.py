@@ -52,7 +52,13 @@ def update_device(serial_number, installed_image, installed_image_version):
   device_type = get_device_type(device.device_type.model)
 
   if installed_image_version != device_type.custom_fields['latest_image_version']:
-    return
+    return device.update({
+      "status": "image_needed",
+      "custom_fields": {
+        "installed_image": image,
+        "installed_image_version": installed_image_version
+      }
+  })
 
   return device.update({
     "custom_fields": {
