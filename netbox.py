@@ -1,6 +1,5 @@
 import pynetbox
 import requests
-import ipaddress
 from config import config
 
 session = requests.Session()
@@ -22,23 +21,22 @@ def create_device(serial_number, installed_image, installed_image_version, model
     image = installed_image.split(':')[1]
 
   device_type = netbox.dcim.device_types.get(part_number=model_number)
-  status = 'planned'
-
-  if installed_image_version != device_type.custom_fields['latest_image_version']:
-    status = 'image_needed'
-
+ 
   device = netbox.dcim.devices.create(
     name=serial_number,
     site=netbox.dcim.sites.get(name="Provisjonering").id,
     role=netbox.dcim.device_roles.get(name='Access Switch').id,
     device_type=device_type.id,
     serial=serial_number,
-    status=status,
+    status='planned',
     custom_fields={
       "installed_image": image,
       "installed_image_version": installed_image_version
     }
   )
+
+  if installed_image_version != device_type.custom_fields['latest_image_version']:
+    add_device_tag(serial_number, "image-needed")
 
   return device
 
@@ -49,16 +47,6 @@ def update_device(serial_number, installed_image, installed_image_version):
     image = installed_image.split(':')[1]
 
   device = get_device(serial_number)
-  device_type = get_device_type(device.device_type.model)
-
-  if installed_image_version != device_type.custom_fields['latest_image_version']:
-    return device.update({
-      "status": "image_needed",
-      "custom_fields": {
-        "installed_image": image,
-        "installed_image_version": installed_image_version
-      }
-  })
 
   return device.update({
     "custom_fields": {
@@ -69,6 +57,19 @@ def update_device(serial_number, installed_image, installed_image_version):
 
 def get_devices():
   return list(netbox.dcim.devices.all())
+
+def add_device_tag(serial_number, slug):
+  device = get_device(serial_number)
+  device.tags.append({"slug": slug})
+  return device.save()
+
+def remove_device_tag(serial_number, slug):
+  device = get_device(serial_number)
+  tag_exists = next((tag for tag in device.tags if tag.slug == slug), None)
+  if tag_exists:
+    device.tags.remove(tag_exists)
+    return device.save()
+  return None
 
 def get_device(serial_number):
   return netbox.dcim.devices.get(serial=serial_number)
