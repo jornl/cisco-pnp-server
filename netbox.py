@@ -14,44 +14,45 @@ def check_device_exists(serial_number):
     return False
   return True
 
-def create_device(serial_number, installed_image, installed_image_version, model_number):
-  if "/" in installed_image:
-    image = installed_image.split('/')[1]
+def create_device(serial_number, hardware_info, image_info):
+  if "/" in image_info['imageFile']:
+    image = image_info['imageFile'].split('/')[1]
   else:
-    image = installed_image.split(':')[1]
+    image = image_info['imageFile'].split(':')[1]
 
-  device_type = netbox.dcim.device_types.get(part_number=model_number)
+  device_type = netbox.dcim.device_types.get(part_number=hardware_info['platformName'])
  
   device = netbox.dcim.devices.create(
-    name=serial_number,
-    site=netbox.dcim.sites.get(name="Provisjonering").id,
-    role=netbox.dcim.device_roles.get(name='Access Switch').id,
+    name=hardware_info['hostname'] if hardware_info['hostname'] != "Switch" else serial_number,
+    site=netbox.dcim.sites.get(name=config['netbox']['default_site']).id,
+    role=netbox.dcim.device_roles.get(name=config['netbox']['default_role']).id,
     device_type=device_type.id,
     serial=serial_number,
     status='planned',
     custom_fields={
       "installed_image": image,
-      "installed_image_version": installed_image_version
+      "installed_image_version": image_info['versionString']
     }
   )
 
-  if installed_image_version != device_type.custom_fields['latest_image_version']:
+  if image_info['versionString'] != device_type.custom_fields['latest_image_version']:
     add_device_tag(serial_number, "image-needed")
 
   return device
 
-def update_device(serial_number, installed_image, installed_image_version):
-  if "/" in installed_image:
-    image = installed_image.split('/')[1]
+def update_device(serial_number, hardware_info, image_info):
+  if "/" in image_info['imageFile']:
+    image = image_info['imageFile'].split('/')[1]
   else:
-    image = installed_image.split(':')[1]
+    image = image_info['imageFile'].split(':')[1]
 
   device = get_device(serial_number)
 
   return device.update({
+    "name": hardware_info['hostname'] if hardware_info['hostname'] != "Switch" else serial_number,
     "custom_fields": {
       "installed_image": image,
-      "installed_image_version": installed_image_version
+      "installed_image_version": image_info['versionString']
     }
   })
 
@@ -88,12 +89,3 @@ def render_config(serial_number):
   response = requests.post(f"{config['netbox']['url']}/api/dcim/devices/{device.id}/render-config/", headers=headers, verify=False)
 
   return response.json()['content']
-
-def update_status(serial_number, status):
-  device = get_device(serial_number)
- 
-  device.update({
-    "status": status
-  })
-
-  return device

@@ -4,7 +4,7 @@ import xmltodict
 from flask import Flask, request, send_from_directory, render_template, Response
 from config import config
 
-from netbox import add_device_tag, check_device_exists, create_device, get_device_type, remove_device_tag, update_device, update_status, get_device, render_config
+from netbox import add_device_tag, check_device_exists, create_device, get_device_type, remove_device_tag, update_device, get_device, render_config
 
 app = Flask(__name__, template_folder='templates')
 
@@ -89,22 +89,6 @@ def pnp_work_request():
     if any(tag.slug == 'config-needed' for tag in device.tags):
         print(f"Device {device} needs configuration")
         return Response(pnp_load_config(udi, correlator_id, device), mimetype='application/xml')
-        
-    # if device.status.value == 'planned':
-    #     print(f"Device {device} is planned")
-    #     return Response(pnp_backoff(udi, correlator_id, 5), mimetype='application/xml')    
-
-    # if device.status.value == 'staged':
-    #     # Device is staged, we can proceed with the configuration
-    #     print(f"Device {device} is staged")
-
-    #     location = f"{config['pnp']['host']}/config/{device.serial}"
-
-    #     return Response(render_template('load_config.xml', **{
-    #         "udi": udi,
-    #         "correlator_id": correlator_id,
-    #         "location": location
-    #     }), mimetype='application/xml')
 
     return Response(render_template('backoff.xml', **{
         "udi": udi,
@@ -132,11 +116,12 @@ def pnp_work_response():
         if job_status == 1:
             device_info = data['pnp']['response']['hardwareInfo']
             image_info = data['pnp']['response']['imageInfo']
+
             if not check_device_exists(device_info['boardId']):
-                create_device(device_info['boardId'], image_info['imageFile'], image_info['versionString'], device_info['platformName'])
+                create_device(device_info['boardId'], device_info, image_info)
             else:
                 remove_device_tag(serial_number, 'image-updated')
-                update_device(device_info['boardId'], image_info['imageFile'], image_info['versionString'])
+                update_device(device_info['boardId'], device_info, image_info)
             return Response(pnp_bye(udi, correlator_id), mimetype='application/xml')
         
     if job_type == 'urn:cisco:pnp:image-install':

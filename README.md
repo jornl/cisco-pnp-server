@@ -3,7 +3,7 @@ Create a virtual environment `python3 -m venv .venv`, source it `source .venv/bi
 
 Then install the projects dependencies `pip install -r requirements.txt`.
 
-Copy the .env.example to .env and set your configuration `cp .env.example to .env`.
+Copy the .env.example to .env `cp .env.example .env`, and set your configuration.
 
 Run the server `python3 main.py`.
 
@@ -37,9 +37,11 @@ If the device doesn't have the latest image (specified on the device type) it wi
 
 Upload the image to the images folder on the server, and reference the full filename on the Device type in netbox.
 Like this:
+
 ![Custom fields populated on the device type](docs/images/custom-fields-device-type.png)
 
 When the switch first starts up it will register with the custom fields added:
+
 ![Custom fields populated on the device](docs/images/custom-fields-device.png)
 
 # Acknowledgements

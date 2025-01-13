@@ -22,5 +22,7 @@ config = {
     "netbox": {
         "url": env('NETBOX_URL', 'http://localhost:8000'),
         "api_token": env('NETBOX_API_TOKEN', ''),
+        "default_site": env('NETBOX_DEFAULT_SITE', 'Provisioning Site'),
+        "default_role": env('NETBOX_DEFAULT_ROLE', 'Access Switch'),
     },
 }
