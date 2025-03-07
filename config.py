@@ -24,5 +24,7 @@ config = {
         "api_token": env('NETBOX_API_TOKEN', ''),
         "default_site": env('NETBOX_DEFAULT_SITE', 'Provisioning Site'),
         "default_role": env('NETBOX_DEFAULT_ROLE', 'Access Switch'),
+        "tag_devices": env('NETBOX_TAG_DEVICES', True),
+        "default_device_tag": env('NETBOX_DEFAULT_DEVICE_TAG', 'pnp-device')
     },
 }

@@ -1,4 +1,7 @@
 import pynetbox
+
+from pynetbox.core.endpoint import DetailEndpoint
+
 import requests
 from config import config
 
@@ -9,12 +12,12 @@ netbox.http_session = session
 
 print(f"Netbox URL: {config['netbox']['url']}")
 
-def check_device_exists(serial_number):
+def check_device_exists(serial_number: str) -> bool:
   if netbox.dcim.devices.count(serial=serial_number) == 0:
     return False
   return True
 
-def create_device(serial_number, hardware_info, image_info):
+def create_device(serial_number: str, hardware_info: dict, image_info: dict):
   if "/" in image_info['imageFile']:
     image = image_info['imageFile'].split('/')[1]
   else:
@@ -35,12 +38,15 @@ def create_device(serial_number, hardware_info, image_info):
     }
   )
 
+  if (config['netbox']['tag_devices'] == True or config['netbox']['tag_devices'] == "True"):
+    add_device_tag(serial_number, config['netbox']['default_device_tag'])
+
   if image_info['versionString'] != device_type.custom_fields['latest_image_version']:
     add_device_tag(serial_number, "image-needed")
 
   return device
 
-def update_device(serial_number, hardware_info, image_info):
+def update_device(serial_number: str, hardware_info: dict, image_info: dict):
   if "/" in image_info['imageFile']:
     image = image_info['imageFile'].split('/')[1]
   else:
@@ -59,12 +65,12 @@ def update_device(serial_number, hardware_info, image_info):
 def get_devices():
   return list(netbox.dcim.devices.all())
 
-def add_device_tag(serial_number, slug):
+def add_device_tag(serial_number: str, slug: str):
   device = get_device(serial_number)
   device.tags.append({"slug": slug})
   return device.save()
 
-def remove_device_tag(serial_number, slug):
+def remove_device_tag(serial_number: str, slug: str):
   device = get_device(serial_number)
   tag_exists = next((tag for tag in device.tags if tag.slug == slug), None)
   if tag_exists:
@@ -72,13 +78,13 @@ def remove_device_tag(serial_number, slug):
     return device.save()
   return None
 
-def get_device(serial_number):
+def get_device(serial_number: str) -> DetailEndpoint:
   return netbox.dcim.devices.get(serial=serial_number)
 
 def get_device_type(model_number):
   return netbox.dcim.device_types.get(part_number=model_number)
 
-def render_config(serial_number):
+def render_config(serial_number: str):
   device = get_device(serial_number)
   
   headers = {
