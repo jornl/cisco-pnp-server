@@ -1,0 +1,5 @@
+images/*
+docs/*
+.venv
+__pycache__
+test.py
