@@ -52,7 +52,7 @@ def serve_config(serial_number: str):
 
 @app.route('/images/<path:path>')
 def serve_image(path):
-    return send_from_directory("images", path)
+    return send_from_directory("./images", path)
 
 @app.route('/pnp/HELLO')
 def pnp_hello():
